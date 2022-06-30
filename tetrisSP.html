@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+    <link rel="stylesheet" href="style.css">
+
+    <title>Document</title>
+
+    <style>
+        html {
+            height: 100%;
+        }
+    </style>
+</head>
+<body class="tetrisSinglePlayerPage">
+
+    <div class="game">
+        <div class="gamePlaygroundPart1">
+            <canvas id="canvasBlockHolder"></canvas>
+            <div id="gameScore"></div>
+            <h3 id="username"> username </h3>
+        </div>
+
+        <canvas id="canvasPlay"></canvas>
+        <canvas id="canvasNextBlocks"></canvas>
+    </div>
+
+    <script type="text/javascript" src="build/tetrisSP.js"></script>
+
+    <script>
+        window.addEventListener("keydown", function(e) {
+            if(e.code === "Space"|
+                e.code === "ArrowUp"|
+                e.code === "ArrowDown"|
+                e.code === "ArrowLeft"|
+                e.code === "ArrowRight") {
+                e.preventDefault();
+            }
+        }, false);
+    </script>
+
+</body>
+</html>
