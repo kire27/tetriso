@@ -6,11 +6,22 @@ const context = canvas.getContext("2d");
 canvas.width = 400;
 canvas.height = 800;
 context.scale(canvas.width / 10, canvas.width / 10); // =40
+const blockHolder = document.getElementById("imgBlockHolder");
+const nextBlock1 = document.getElementById("inb1");
+const nextBlock2 = document.getElementById("inb2");
+const nextBlock3 = document.getElementById("inb3");
+const nextBlock4 = document.getElementById("inb4");
+const nextBlock5 = document.getElementById("inb5");
 const arena = createMatrix(10, 20); // Array(20).fill(null).map(() => Array(12).fill(0));
+const pieces = "IJLOSTZ";
 const player = {
     pos: { x: 4, y: -6 },
     matrix: createPiece(""),
-    score: 0
+    followingMatrixes: [...Array(5)].map(_ => pieces[pieces.length * Math.random() | 0]),
+    score: 0,
+    holdBlockType: "",
+    holdBlock: [],
+    useHolder: true
 };
 const blockImg1 = new Image();
 const blockImg2 = new Image();
@@ -19,13 +30,21 @@ const blockImg4 = new Image();
 const blockImg5 = new Image();
 const blockImg6 = new Image();
 const blockImg7 = new Image();
-blockImg1.src = './res/a.png';
-blockImg2.src = './res/b.png';
-blockImg3.src = './res/c.png';
-blockImg4.src = './res/e.png';
-blockImg5.src = './res/f.png';
-blockImg6.src = './res/g.png';
-blockImg7.src = './res/h.png';
+blockImg1.src = '../res/a.png';
+blockImg2.src = '../res/b.png';
+blockImg3.src = '../res/c.png';
+blockImg4.src = '../res/e.png';
+blockImg5.src = '../res/f.png';
+blockImg6.src = '../res/g.png';
+blockImg7.src = '../res/h.png';
+const blockPiece0 = '../res/empty_piece.png';
+const blockPiece1 = '../res/i_piece.png';
+const blockPiece2 = '../res/j_piece.png';
+const blockPiece3 = '../res/l_piece.png';
+const blockPiece4 = '../res/o_piece.png';
+const blockPiece5 = '../res/s_piece.png';
+const blockPiece6 = '../res/t_piece.png';
+const blockPiece7 = '../res/z_piece.png';
 const colors = {
     1: blockImg1,
     2: blockImg2,
@@ -43,11 +62,13 @@ const colors = {
     // 7: '#ff0000',
 };
 const playerControls = {
+    pause: "Escape",
+    rotateLeft: "KeyZ",
+    hold: "KeyC",
+    hardDrop: "Space",
     moveLeft: "ArrowLeft",
     moveRight: "ArrowRight",
-    moveDown: "ArrowDown",
-    dropDown: "Space",
-    rotateLeft: "Numpad0",
+    softDrop: "ArrowDown",
     rotateRight: "ArrowUp",
 };
 document.addEventListener('keydown', e => {
@@ -55,14 +76,24 @@ document.addEventListener('keydown', e => {
         playerMove(-1);
     if (e.code === playerControls.moveRight)
         playerMove(1);
-    if (e.code === playerControls.moveDown)
+    if (e.code === playerControls.softDrop)
         playerDown();
-    if (e.code === playerControls.dropDown)
+    if (e.code === playerControls.hardDrop)
         playerDrop();
     if (e.code === playerControls.rotateLeft)
         playerRotate(-1);
     if (e.code === playerControls.rotateRight)
         playerRotate(1);
+    if (e.code === playerControls.hold && player.useHolder) {
+        blockHolder.src = blockHolderChange(player.holdBlockType);
+        if (!player.holdBlock.length) {
+            player.holdBlock = player.matrix;
+            playerReset();
+        }
+        else
+            [player.holdBlock, player.matrix] = [player.matrix, player.holdBlock];
+        player.useHolder = false;
+    }
 });
 function arenaSweep() {
     let rowCount = 1;
@@ -77,6 +108,18 @@ function arenaSweep() {
         ++y;
         player.score += rowCount * 10;
         rowCount *= 2;
+    }
+}
+function blockHolderChange(type) {
+    switch (type) {
+        case "I": return blockPiece1;
+        case "J": return blockPiece2;
+        case "L": return blockPiece3;
+        case "O": return blockPiece4;
+        case "S": return blockPiece5;
+        case "T": return blockPiece6;
+        case "Z": return blockPiece7;
+        default: return blockPiece0;
     }
 }
 function collide(arena, player) {
@@ -147,8 +190,7 @@ function createPiece(type) {
 }
 function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
-    // context.fillStyle = "black";
-    // context.fillRect(0, 0, canvas.width, canvas.height);
+    // context.fillStyle = "black";    // context.fillRect(0, 0, canvas.width, canvas.height);
     drawMatrix(arena, { x: 0, y: 0 });
     drawMatrix(player.matrix, player.pos);
 }
@@ -157,9 +199,7 @@ function drawMatrix(matrix, offset) {
         row.forEach((value, x) => {
             if (value != 0) {
                 context.drawImage(Object(colors)[value], x + offset.x, y + offset.y, 1, 1);
-                context.drawImage(Object(colors)[value], x + offset.x, y + offset.y, 1, 1);
-                // context.fillStyle = Object(colors)[value];
-                // context.fillRect(x + offset.x, y + offset.y, 1, 1);
+                // context.fillStyle = Object(colors)[value];   // context.fillRect(x + offset.x, y + offset.y, 1, 1);
             }
         });
     });
@@ -202,15 +242,24 @@ function playerMove(dir) {
     }
 }
 function playerReset() {
-    const pieces = "IJLOSTZ";
-    player.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
+    const randomPiece = pieces[pieces.length * Math.random() | 0];
+    player.matrix = createPiece(player.followingMatrixes[0]);
+    player.holdBlockType = player.followingMatrixes[0];
+    player.followingMatrixes.shift();
+    player.followingMatrixes.push(randomPiece);
     player.pos.y = 0;
     player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
+    player.useHolder = true;
     if (collide(arena, player)) {
         arena.forEach(row => row.fill(0));
         player.score = 0;
         updateScore();
     }
+    nextBlock1.src = blockHolderChange(player.followingMatrixes[0]);
+    nextBlock2.src = blockHolderChange(player.followingMatrixes[1]);
+    nextBlock3.src = blockHolderChange(player.followingMatrixes[2]);
+    nextBlock4.src = blockHolderChange(player.followingMatrixes[3]);
+    nextBlock5.src = blockHolderChange(player.followingMatrixes[4]);
 }
 function playerRotate(dir) {
     const pos = player.pos.x;

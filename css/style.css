@@ -136,6 +136,7 @@ footer.mainFooter {
 
 ::-webkit-scrollbar {
     width: 15px;
+    height: 8px;
 }
 ::-webkit-scrollbar-track {
     background: var(--c3); 
@@ -183,21 +184,36 @@ div#gameScore {
     padding: 25px 0;
 }
 
-#canvasBlockHolder {
+.blockHolder {
     width: 200px;
     height: 200px;
     border:1px solid var(--c4);
-} 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+} #imgBlockHolder {
+    width: 150px;
+    height: 150px;
+}
+
 #canvasPlay {
-    background-image: url("./res/grid.jpg");
+    background-image: url("../res/grid.jpg");
     background-size: cover;                      
     background-repeat: no-repeat;
     background-position: center center;
     margin: 0 10px;
     border:1px solid var(--c4);
 } 
-#canvasNextBlocks {
+.nextBlocks {
     width: 200px;
     height: 800px;
     border:1px solid var(--c4);
+    overflow: hidden;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center;
+    flex-direction: column;
+} .imgNextBlocks {
+    width: 150px;
+    height: 150px;
 }
