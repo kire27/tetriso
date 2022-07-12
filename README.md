@@ -5,6 +5,6 @@
 
 ##### Tetris web game with single-player and multiplayer mode.
 
-git add .
-git commit "..."
-git push -u origin main
+~~git add .
+~~git commit "..."
+~~git push -u origin main
