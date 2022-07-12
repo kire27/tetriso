@@ -15,7 +15,7 @@ const nextBlock5 = document.getElementById("inb5");
 const arena = createMatrix(10, 20); // Array(20).fill(null).map(() => Array(12).fill(0));
 const pieces = "IJLOSTZ";
 const player = {
-    pos: { x: 4, y: -6 },
+    pos: { x: 4, y: -6, sy: 19 },
     matrix: createPiece(""),
     followingMatrixes: [...Array(5)].map(_ => pieces[pieces.length * Math.random() | 0]),
     score: 0,
@@ -53,13 +53,6 @@ const colors = {
     5: blockImg5,
     6: blockImg6,
     7: blockImg7,
-    // 1: '#00ffff',
-    // 2: '#0000ff',
-    // 3: '#ffa500',
-    // 4: '#ffff00',
-    // 5: '#00ff00',
-    // 6: '#ff00ff',
-    // 7: '#ff0000',
 };
 const playerControls = {
     pause: "Escape",
@@ -122,13 +115,13 @@ function blockHolderChange(type) {
         default: return blockPiece0;
     }
 }
-function collide(arena, player) {
-    const [m, o] = [player.matrix, player.pos];
+function collide(arena, player, py) {
+    const [m, px] = [player.matrix, player.pos.x];
     for (let y = 0; y < m.length; ++y) {
         for (let x = 0; x < m[y].length; ++x) {
             if (m[y][x] !== 0 &&
-                (arena[y + o.y] &&
-                    arena[y + o.y][x + o.x]) !== 0) {
+                (arena[y + py] &&
+                    arena[y + py][x + px]) !== 0) {
                 return true;
             }
         }
@@ -191,18 +184,27 @@ function createPiece(type) {
 function draw() {
     context.clearRect(0, 0, canvas.width, canvas.height);
     // context.fillStyle = "black";    // context.fillRect(0, 0, canvas.width, canvas.height);
-    drawMatrix(arena, { x: 0, y: 0 });
+    drawMatrix(arena, { x: 0, y: 0, sy: 0 });
     drawMatrix(player.matrix, player.pos);
 }
 function drawMatrix(matrix, offset) {
     matrix.forEach((row, y) => {
         row.forEach((value, x) => {
             if (value != 0) {
+                context.globalAlpha = 1;
                 context.drawImage(Object(colors)[value], x + offset.x, y + offset.y, 1, 1);
+                context.globalAlpha = 0.3;
+                context.drawImage(Object(colors)[value], x + offset.x, y + offset.sy, 1, 1);
                 // context.fillStyle = Object(colors)[value];   // context.fillRect(x + offset.x, y + offset.y, 1, 1);
             }
         });
     });
+}
+function drawShadow() {
+    if (collide(arena, player, player.pos.sy))
+        player.pos.sy--;
+    else if (!collide(arena, player, player.pos.sy + 1))
+        player.pos.sy++;
 }
 function merge(arena, player) {
     player.matrix.forEach((row, y) => {
@@ -215,7 +217,7 @@ function merge(arena, player) {
 }
 function playerDown() {
     player.pos.y++;
-    if (collide(arena, player)) {
+    if (collide(arena, player, player.pos.y)) {
         player.pos.y--;
         merge(arena, player);
         playerReset();
@@ -225,7 +227,7 @@ function playerDown() {
     dropCounter = 0;
 }
 function playerDrop() {
-    while (!collide(arena, player)) {
+    while (!collide(arena, player, player.pos.y)) {
         player.pos.y++;
     }
     player.pos.y--;
@@ -237,7 +239,7 @@ function playerDrop() {
 }
 function playerMove(dir) {
     player.pos.x += dir;
-    if (collide(arena, player)) {
+    if (collide(arena, player, player.pos.y)) {
         player.pos.x -= dir;
     }
 }
@@ -250,7 +252,7 @@ function playerReset() {
     player.pos.y = 0;
     player.pos.x = (arena[0].length / 2 | 0) - (player.matrix[0].length / 2 | 0);
     player.useHolder = true;
-    if (collide(arena, player)) {
+    if (collide(arena, player, player.pos.y)) {
         arena.forEach(row => row.fill(0));
         player.score = 0;
         updateScore();
@@ -265,7 +267,7 @@ function playerRotate(dir) {
     const pos = player.pos.x;
     let offset = 1;
     rotate(player.matrix, dir);
-    while (collide(arena, player)) {
+    while (collide(arena, player, player.pos.y)) {
         player.pos.x += offset;
         offset = -(offset + (offset > 0 ? 1 : -1));
         if (offset > player.matrix[0].length) {
@@ -303,6 +305,7 @@ function update(time = 0) {
         playerDown();
     }
     draw();
+    drawShadow();
     requestAnimationFrame(update);
 }
 function updateScore() {

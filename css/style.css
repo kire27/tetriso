@@ -197,7 +197,7 @@ div#gameScore {
 }
 
 #canvasPlay {
-    background-image: url("../res/grid.jpg");
+    background-image: url("../res/grid.png");
     background-size: cover;                      
     background-repeat: no-repeat;
     background-position: center center;
